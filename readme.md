@@ -158,9 +158,9 @@ func main() {
 ![](http://qiniu.taoluyuan.com/2023/blog20230526002303.png?imageMogr2/auto-orient/interlace/1/blur/1x0/quality/70%7Cwatermark/2/text/YmxvZy50YW9sdXl1YW4uY29t/font/5a6L5L2T/fontsize/500/fill/I0E4QTBBMA==/dissolve/100/gravity/NorthWest/dx/10/dy/10)
 可以看到 相似度太低,提示违规问题或者超纲问题
 2. 问k8s 本地知识库的问题,比如:什么是Kubernetes中的Deployment？
-   ![](http://qiniu.taoluyuan.com/2023/blog20230526002640.png?imageMogr2/auto-orient/interlace/1/blur/1x0/quality/70%7Cwatermark/2/text/YmxvZy50YW9sdXl1YW4uY29t/font/5a6L5L2T/fontsize/500/fill/I0E4QTBBMA==/dissolve/100/gravity/NorthWest/dx/10/dy/1
-3. 问k8s本地知识库的问题,但问题单独向chatgpt提问,并不能得到k8s相关问题.体现qdrant 本地知识库 辅助的重要性,比如问"网关是什么"
-  ![](http://qiniu.taoluyuan.com/2023/blog20230526003436.png?imageMogr2/auto-orient/interlace/1/blur/1x0/quality/70%7Cwatermark/2/text/YmxvZy50YW9sdXl1YW4uY29t/font/5a6L5L2T/fontsize/500/fill/I0E4QTBBMA==/dissolve/100/gravity/NorthWest/dx/10/dy/10) 
+   ![](http://qiniu.taoluyuan.com/2023/blog20230526002640.png?imageMogr2/auto-orient/interlace/1/blur/1x0/quality/70%7Cwatermark/2/text/YmxvZy50YW9sdXl1YW4uY29t/font/5a6L5L2T/fontsize/500/fill/I0E4QTBBMA==/dissolve/100/gravity/NorthWest/dx/10/dy/1)
+3. 问k8s本地知识库的问题,但问题单独向chatgpt提问,并不能得到k8s相关问题.体现qdrant 本地知识库 辅助的重要性,比如问 网关是什么  
+![](http://qiniu.taoluyuan.com/2023/blog20230526003436.png?imageMogr2/auto-orient/interlace/1/blur/1x0/quality/70%7Cwatermark/2/text/YmxvZy50YW9sdXl1YW4uY29t/font/5a6L5L2T/fontsize/500/fill/I0E4QTBBMA==/dissolve/100/gravity/NorthWest/dx/10/dy/10) 
  可以看到,红线部分,直接问chatgpt,得到的答案可能跟k8s无关,结合k8s本地知识库,可以让回答偏向 数据集设定的主题,比如k8s
 ## 示例源码地址及使用
 源码地址:
