@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 
+	myai "embedding-knowledge-base/ai"
 	"embedding-knowledge-base/qdrant"
 
 	pb "github.com/qdrant/go-client/qdrant"
@@ -45,12 +46,12 @@ var answers = []string{
 }
 
 func main() {
-	// 第一步：自己创建 一个collection:  kubernetes
+// 第一步：自己创建 一个collection:  kubernetes
 	var err error
-	// err = qdrant.Collection("kubernetes").Create(1536)
-	// if err != nil {
-	// 	log.Fatalln("创建collection出错:", err.Error())
-	// }
+	err = qdrant.Collection("kubernetes").Create(1536)
+	if err != nil {
+		log.Fatalln("创建collection出错:", err.Error())
+	}
 
 	points := []*pb.PointStruct{}
 	// 批量 进行BuildQdrantPoint
