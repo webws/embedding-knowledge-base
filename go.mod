@@ -1,4 +1,4 @@
-module embedding-knowledge-base
+module github.com/webws/embedding-knowledge-base
 
 go 1.19
 
