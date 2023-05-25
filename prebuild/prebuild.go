@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"log"
 
-	myai "embedding-knowledge-base/ai"
-	"embedding-knowledge-base/qdrant"
+	myai "github.com/webws/embedding-knowledge-base/ai"
+	"github.com/webws/embedding-knowledge-base/qdrant"
 
 	pb "github.com/qdrant/go-client/qdrant"
 	"github.com/sashabaranov/go-openai"
@@ -46,7 +46,7 @@ var answers = []string{
 }
 
 func main() {
-// 第一步：自己创建 一个collection:  kubernetes
+	// 第一步：自己创建 一个collection:  kubernetes
 	var err error
 	err = qdrant.Collection("kubernetes").Create(1536)
 	if err != nil {

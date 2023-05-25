@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 
-	myai "embedding-knowledge-base/ai"
-	"embedding-knowledge-base/qdrant"
+	myai "github.com/webws/embedding-knowledge-base/ai"
+	"github.com/webws/embedding-knowledge-base/qdrant"
 )
 
 func main() {
