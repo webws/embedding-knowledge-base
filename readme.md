@@ -1,6 +1,6 @@
 #  使用golang 基于 OpenAI Embedding + qdrant 实现k8s本地知识库
 ## 流程
-![](http://qiniu.taoluyuan.com/2023/blog20230526000739.png?imageMogr2/auto-orient/interlace/1/blur/1x0/quality/70%7Cwatermark/2/text/YmxvZy50YW9sdXl1YW4uY29t/font/5a6L5L2T/fontsize/500/fill/I0E4QTBBMA==/dissolve/100/gravity/NorthWest/dx/10/dy/10)
+![](https://qiniu.taoluyuan.com/2023/blog20230527115805.png?imageMogr2/auto-orient/thumbnail/!70p/blur/9x0/quality/75)
 1. 将数据集 通过 openai embedding 得到向量+组装payload,存入 qdrant
 2. 用户进行问题搜索,通过 openai embedding 得到向量,从 qdrant 中搜索相似度大于0.8的数据
 3. 从 qdrant 中取出第一条数据
