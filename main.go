@@ -4,10 +4,13 @@ import (
 	"fmt"
 
 	myai "github.com/webws/embedding-knowledge-base/ai"
+	"github.com/webws/embedding-knowledge-base/cmd"
 	"github.com/webws/embedding-knowledge-base/qdrant"
 )
 
 func main() {
+	cmd.Execute()
+	return
 	prompt := "什么是Kubernetes中的DaemonSet？"
 	// prompt := "苹果不削皮能吃吗"
 	p_vec, err := myai.SimpleGetVec(prompt)
