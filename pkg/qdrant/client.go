@@ -9,8 +9,6 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-const QdrantAddr = "127.0.0.1:6334"
-
 type QdrantClient struct {
 	grpcConn *grpc.ClientConn
 }
@@ -23,8 +21,8 @@ func (qc *QdrantClient) Collection() pb.CollectionsClient {
 	return pb.NewCollectionsClient(qc.grpcConn)
 }
 
-func NewQdrantClient() *QdrantClient {
-	conn, err := grpc.Dial(QdrantAddr,
+func NewQdrantClient(qdrantAddr string) *QdrantClient {
+	conn, err := grpc.Dial(qdrantAddr,
 		grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
@@ -57,7 +55,7 @@ func (qc *QdrantClient) CreateCollection(name string, size uint64) error {
 			Config: &pb.VectorsConfig_Params{
 				Params: &pb.VectorParams{
 					Size:     size,
-					Distance: pb.Distance_Cosine, // 余弦相似性
+					Distance: pb.Distance_Cosine,
 				},
 			},
 		},
@@ -124,7 +122,7 @@ func (qc *QdrantClient) Search(collection string, vector []float32) ([]*pb.Score
 	rsp, err := sc.Search(context.Background(), &pb.SearchPoints{
 		CollectionName: collection,
 		Vector:         vector,
-		Limit:          3, // 只取 3条
+		Limit:          3, // only take three
 		WithPayload: &pb.WithPayloadSelector{
 			SelectorOptions: &pb.WithPayloadSelector_Include{
 				Include: &pb.PayloadIncludeSelector{

@@ -13,10 +13,10 @@ const (
 )
 
 var (
-	qdrantFlag   = "qdrant"
-	proxyFlag    = "proxy"
+	qdrantFlag   = "qdrant"    // qdrant address
+	proxyFlag    = "proxy"     // openai http proxy
 	dataFileFlag = "data-file" // cmd import flag
-	msgFlag      = "msg"       // cmd ask flag
+	msgFlag      = "msg"       // cmd ask flag  question
 	rootCmd      = &cobra.Command{
 		Use:   "kbai",
 		Short: "a local knowledge base, based on chatgpt and qdrant",
