@@ -24,7 +24,6 @@ var importCmd = &cobra.Command{
 	Use:   "import",
 	Short: "import data to vector database",
 	Long:  "import data to vector database",
-
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// TODO:flg to conf
 		qdrantAddr, err := cmd.Flags().GetString(qdrantFlag)
@@ -35,7 +34,19 @@ var importCmd = &cobra.Command{
 		defer qdrantClient.Close()
 
 		// TODO flg to conf apikey,proxy
-		aiClient, err := ai.NewAiClient("", "")
+		apiKey := os.Getenv(apiKeyFlag)
+		if apiKey == "" {
+			apiKey, err = cmd.Flags().GetString(apiKeyFlag)
+			if err != nil {
+				return err
+			}
+		}
+		//
+		proxy, err := cmd.Flags().GetString(proxyFlag)
+		if err != nil {
+			return err
+		}
+		aiClient, err := ai.NewAiClient(proxy, apiKey)
 		if err != nil {
 			return err
 		}
@@ -109,7 +120,7 @@ func convertToQAs(dataFilePath string) ([]*QA, error) {
 		return nil, err
 	}
 	var qas []*QA
-	err = json.Unmarshal(content, qas)
+	err = json.Unmarshal(content, &qas)
 	if err != nil {
 		return nil, err
 	}

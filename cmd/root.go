@@ -14,26 +14,26 @@ const (
 
 var (
 	qdrantFlag   = "qdrant"    // qdrant address
-	proxyFlag    = "proxy"     // openai http proxy
-	dataFileFlag = "data-file" // cmd import flag
+	dataFileFlag = "data_file" // cmd import flag
 	msgFlag      = "msg"       // cmd ask flag  question
-	rootCmd      = &cobra.Command{
-		Use:   "kbai",
-		Short: "a local knowledge base, based on chatgpt and qdrant",
-		Long:  "a local knowledge base, based on chatgpt and qdrant",
-		// Long:  `Built a local smart search knowledge repository using Golang, OpenAI Embedding, and the qdrant vector database`,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			if err := cobra.MinimumNArgs(1)(cmd, args); err != nil {
-				return cmd.Help()
-			}
-			return nil
-		},
-	}
+	apiKeyFlag   = "apiKey"    // open apikey
+	proxyFlag    = "proxy"     // openai http proxy
 )
 
-func Execute() {
-	fmt.Println(os.Args[1:])
+var rootCmd = &cobra.Command{
+	Use:   "kbai",
+	Short: "a local knowledge base, based on chatgpt and qdrant",
+	Long:  "a local knowledge base, based on chatgpt and qdrant",
+	// Long:  `Built a local smart search knowledge repository using Golang, OpenAI Embedding, and the qdrant vector database`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		if err := cobra.MinimumNArgs(1)(cmd, args); err != nil {
+			return cmd.Help()
+		}
+		return nil
+	},
+}
 
+func Execute() {
 	err := rootCmd.Execute()
 	if err != nil {
 		os.Exit(1)
