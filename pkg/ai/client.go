@@ -5,7 +5,6 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-	"os"
 
 	openai "github.com/sashabaranov/go-openai"
 	"github.com/webws/go-moda/logger"
@@ -18,9 +17,6 @@ type AIClient struct {
 }
 
 func NewAiClient(proxy, apiKey string) (*AIClient, error) {
-	if apiKey == "" {
-		apiKey = os.Getenv("AIKey")
-	}
 	config := openai.DefaultConfig(apiKey)
 	if proxy != "" {
 		uri, err := url.Parse(proxy)
