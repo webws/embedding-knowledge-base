@@ -2,9 +2,9 @@ package qdrant
 
 import (
 	"context"
-	"log"
 
 	pb "github.com/qdrant/go-client/qdrant"
+	"github.com/webws/go-moda/logger"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -25,7 +25,7 @@ func NewQdrantClient(qdrantAddr string) *QdrantClient {
 	conn, err := grpc.Dial(qdrantAddr,
 		grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		log.Fatalf("did not connect: %v", err)
+		logger.Fatalw("did not connect", "err", err)
 	}
 	return &QdrantClient{grpcConn: conn}
 }
@@ -48,7 +48,6 @@ func (qc *QdrantClient) DeleteCollection(name string) error {
 
 func (qc *QdrantClient) CreateCollection(name string, size uint64) error {
 	cc := pb.NewCollectionsClient(qc.grpcConn)
-
 	req := &pb.CreateCollection{
 		CollectionName: name,
 		VectorsConfig: &pb.VectorsConfig{
@@ -67,7 +66,6 @@ func (qc *QdrantClient) CreateCollection(name string, size uint64) error {
 	return nil
 }
 
-// 批量创建Point
 func (qc *QdrantClient) CreatePoints(collection string, points []*pb.PointStruct) error {
 	pc := pb.NewPointsClient(qc.grpcConn)
 
