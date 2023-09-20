@@ -1,16 +1,16 @@
 package cmd
 
 import (
+	"crypto/md5"
+	"encoding/hex"
 	"encoding/json"
-	"fmt"
 	"io"
 	"os"
-	"time"
 
 	"github.com/spf13/cobra"
+	"github.com/webws/embedding-knowledge-base/ai"
 	"github.com/webws/embedding-knowledge-base/options"
-	"github.com/webws/embedding-knowledge-base/pkg/ai"
-	"github.com/webws/embedding-knowledge-base/pkg/qdrant"
+	"github.com/webws/embedding-knowledge-base/qdrant"
 	"github.com/webws/go-moda/logger"
 
 	pb "github.com/qdrant/go-client/qdrant"
@@ -29,7 +29,7 @@ func NewImportCmd(configFlags options.ConfigFlags) *cobra.Command {
 		Short: "import data to vector database",
 		Long:  "import data to vector database",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			qdrantClient := qdrant.NewQdrantClient(configFlags.Qdrant)
+			qdrantClient := qdrant.NewQdrantClient(configFlags.Qdrant, configFlags.Collection, configFlags.VectorSize)
 			defer qdrantClient.Close()
 			aiClient, err := ai.NewAiClient(configFlags.Proxy, configFlags.ApiKey)
 			if err != nil {
@@ -43,6 +43,7 @@ func NewImportCmd(configFlags options.ConfigFlags) *cobra.Command {
 				return err
 			}
 			points := []*pb.PointStruct{}
+			logger.Infow("import", "data", qas)
 			qpsLenth := len(qas)
 			for i, qa := range qas {
 				embedding, err := aiClient.SimpleGetVec(qa.Questions)
@@ -65,10 +66,10 @@ func NewImportCmd(configFlags options.ConfigFlags) *cobra.Command {
 func buildPoint(question string, answers string, embedding []float32) *pb.PointStruct {
 	point := &pb.PointStruct{}
 	// point id
-	uuid := fmt.Sprintf("%s-%d", question, time.Now().UnixNano())
+	// uuid := fmt.Sprintf("%s%d", md5str(question), time.Now().UnixNano())
 	point.Id = &pb.PointId{
 		PointIdOptions: &pb.PointId_Uuid{
-			Uuid: uuid,
+			Uuid: md5str(question),
 		},
 	}
 
@@ -106,4 +107,10 @@ func convertToQAs(dataFilePath string) ([]*QA, error) {
 		return nil, err
 	}
 	return qas, nil
+}
+
+func md5str(s string) string {
+	h := md5.New()
+	h.Write([]byte(s))
+	return hex.EncodeToString(h.Sum(nil))
 }
