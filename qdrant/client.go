@@ -2,17 +2,23 @@ package qdrant
 
 import (
 	"context"
-	"log"
+	"strings"
 
 	pb "github.com/qdrant/go-client/qdrant"
+	"github.com/webws/go-moda/logger"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-const QdrantAddr = "127.0.0.1:6334"
+const (
+	ErrNotFound      = "Not found"
+	ErrAlreadyExists = "already exists"
+)
 
 type QdrantClient struct {
-	grpcConn *grpc.ClientConn
+	grpcConn   *grpc.ClientConn
+	collection string
+	size       uint64
 }
 
 func (qc *QdrantClient) Close() {
@@ -23,13 +29,13 @@ func (qc *QdrantClient) Collection() pb.CollectionsClient {
 	return pb.NewCollectionsClient(qc.grpcConn)
 }
 
-func NewQdrantClient() *QdrantClient {
-	conn, err := grpc.Dial(QdrantAddr,
+func NewQdrantClient(qdrantAddr, collection string, size uint64) *QdrantClient {
+	conn, err := grpc.Dial(qdrantAddr,
 		grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		log.Fatalf("did not connect: %v", err)
+		logger.Fatalw("did not connect", "err", err)
 	}
-	return &QdrantClient{grpcConn: conn}
+	return &QdrantClient{grpcConn: conn, collection: collection, size: size}
 }
 
 func toPayload(payload map[string]string) map[string]*pb.Value {
@@ -50,26 +56,28 @@ func (qc *QdrantClient) DeleteCollection(name string) error {
 
 func (qc *QdrantClient) CreateCollection(name string, size uint64) error {
 	cc := pb.NewCollectionsClient(qc.grpcConn)
-
 	req := &pb.CreateCollection{
 		CollectionName: name,
 		VectorsConfig: &pb.VectorsConfig{
 			Config: &pb.VectorsConfig_Params{
 				Params: &pb.VectorParams{
 					Size:     size,
-					Distance: pb.Distance_Cosine, // 余弦相似性
+					Distance: pb.Distance_Cosine,
 				},
 			},
 		},
 	}
 	_, err := cc.Create(context.Background(), req)
+	if err != nil && strings.Contains(err.Error(), ErrAlreadyExists) {
+		return nil
+	}
 	if err != nil {
-		panic(err)
+		logger.Errorw("CreateCollection", "err", err)
+		return err
 	}
 	return nil
 }
 
-// 批量创建Point
 func (qc *QdrantClient) CreatePoints(collection string, points []*pb.PointStruct) error {
 	pc := pb.NewPointsClient(qc.grpcConn)
 
@@ -82,6 +90,7 @@ func (qc *QdrantClient) CreatePoints(collection string, points []*pb.PointStruct
 
 	_, err := pc.Upsert(context.TODO(), &pointsReq)
 	if err != nil {
+		logger.Errorw("CreatePoints fail","err",err)
 		return err
 	}
 	return nil
@@ -119,22 +128,31 @@ func (qc *QdrantClient) CreatePoint(uuid string, collection string, vector []flo
 	return nil
 }
 
-func (qc *QdrantClient) Search(collection string, vector []float32) ([]*pb.ScoredPoint, error) {
+func (qc *QdrantClient) Search(vector []float32) ([]*pb.ScoredPoint, error) {
 	sc := pb.NewPointsClient(qc.grpcConn)
 	rsp, err := sc.Search(context.Background(), &pb.SearchPoints{
-		CollectionName: collection,
+		CollectionName: qc.collection,
 		Vector:         vector,
-		Limit:          3, // 只取 3条
+		Limit:          3, // only take three
 		WithPayload: &pb.WithPayloadSelector{
 			SelectorOptions: &pb.WithPayloadSelector_Include{
 				Include: &pb.PayloadIncludeSelector{
-					Fields: []string{"title", "question", "answers"}, // 暴露 title 和 question 字段
+					Fields: []string{"question", "answers"},
 				},
 			},
 		},
 	})
+	if err != nil && strings.Contains(err.Error(), ErrNotFound) {
+		if err := qc.CreateCollection(qc.collection, qc.size); err != nil {
+			logger.Errorw("Search CreateCollection fail", "err", err)
+			return nil, err
+		}
+		return qc.Search(vector)
+	}
+
 	if err != nil {
 		return nil, err
 	}
+
 	return rsp.Result, nil
 }
