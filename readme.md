@@ -1,37 +1,37 @@
-#  golang 结合 cobra 使用 chatgpt  qdrant 实现 AI知识库 cli 
+#  golang 结合 cobra 使用 chatgpt  qdrant 实现 ai知识库 cli 
 ## 流程
-![](https://qiniu.taoluyuan.com/2023/blog20230527115805.png?imageMogr2/auto-orient/thumbnail/!70p/blur/9x0/quality/75)
+![](https://qiniu.taoluyuan.com/2023/blog20230527115805.png?imagemogr2/auto-orient/thumbnail/!70p/blur/9x0/quality/75)
 1. 将数据集 通过 openai embedding 得到向量+组装payload,存入 qdrant
 2. 用户进行问题搜索,通过 openai embedding 得到向量,从 qdrant 中搜索相似度大于0.8的数据
 3. 从 qdrant 中取出数据得到参考答案
 4. 将问题标题+参考答案,组装成promot 向gpt进行提问,得到偏向于 已有知识库设定的扩展知识回答
-## kabi 知识库的导入和搜索 
+## kbai 知识库的导入和搜索 
 仓库地址:[https://github.com/webws/embedding-knowledge-base]("https://github.com/webws/embedding-knowledge-base")
 
-kabi 是使用 golang 基于 OpenAI chatgpt Embedding + qdrant 实现知识库的导入和问答
+kabi 是使用 golang 基于 openai chatgpt embedding + qdrant 实现知识库的导入和问答
 ```
 ❯ kabi -h
 a local knowledge base, based on chatgpt and qdrant
 
-Usage:
+usage:
   kbai [flags]
   kbai [command]
 
-Available Commands:
-  completion  Generate the autocompletion script for the specified shell
-  help        Help about any command
+available commands:
+  completion  generate the autocompletion script for the specified shell
+  help        help about any command
   import      import data to vector database
-  search      ask the knowledge base example: kbai ask --msg 'First, the chicken or the egg'
+  search      ask the knowledge base example: kbai ask --msg 'first, the chicken or the egg'
 
-Flags:
-      --apiKey string       openai apikey:default from env apiKey
+flags:
+      --apikey string       openai apikey:default from env apikey
       --collection string   qdrant collection name default: kubernetes (default "kubernetes")
   -h, --help                help for kbai
       --proxy string        http client proxy default:socks5://127.0.0.1:1080  (default "socks5://127.0.0.1:1080")
       --qdrant string       qdrant address default: 127.0.0.1:6334 (default "127.0.0.1:6334")
-      --vectorSize uint     qdrant vector size default: 1536 (default 1536)
+      --vectorsize uint     qdrant vector size default: 1536 (default 1536)
 
-Use "kbai [command] --help" for more information about a command.
+use "kbai [command] --help" for more information about a command.
 ```
 #####  启动向量数据库
 qdrant 是一个开源的向量搜索引擎,支持多种向量距离计算方式 
@@ -52,12 +52,12 @@ cd ./embedding-knowledge-base
 
 1.设置 openai apikey
 ```
-export apiKey=xxx
+export apikey=xxx
 ```
 
 2.导入知识库(源码运行)
 ```
-go run ./ import --dataFile ./example/data.json
+go run ./ import --datafile ./example/data.json
 ```
 data.json 数据格式如下,为 真实数据需自己准备
 
@@ -80,17 +80,17 @@ data.json 数据格式如下,为 真实数据需自己准备
 ```
 回答
 ```text
-The answer to the knowledge base:
-在Kubernetes中，网关通常指的是Ingress（入 口）资源对象。Ingress是一种Kubernetes API对象，用于配置和管理集群中的HTTP和HTTPS流量入口。它充当了从集群外部访问集群内部服务的入口点
+the answer to the knowledge base:
+在kubernetes中，网关通常指的是ingress（入 口）资源对象。ingress是一种kubernetes api对象，用于配置和管理集群中的http和https流量入口。它充当了从集群外部访问集群内部服务的入口点
 
-Results of chatgpt answers  with reference answers:
-，同时提供负载均衡、SSL/TLS终止和基于域名的路由等功能。Ingress资源对象定义了一组规则，这些规则指定了通过特定HTTP路径或主机名将请求路由到后端服务的方式。可以使用不同的Ingress控制器实现这些规则，如Nginx、Traefik等。这样就可以在集群中创建多个Ingress资源对象来管理不同的流量入口。
+results of chatgpt answers  with reference answers:
+，同时提供负载均衡、ssl/tls终止和基于域名的路由等功能。ingress资源对象定义了一组规则，这些规则指定了通过特定http路径或主机名将请求路由到后端服务的方式。可以使用不同的ingress控制器实现这些规则，如nginx、traefik等。这样就可以在集群中创建多个ingress资源对象来管理不同的流量入口。
 
 only chatgpt answers:
 网关是一种网络设备，用于连接两个或多个不同类型的网络，以便实现数据以不同协议进行传递和转换。网关起到了连接不同网络之间的桥梁作用，将两个或多个网络互相连接起来，并负责数据的路由和转发。网关可以是硬件设备，如路由器，也可以是软件程序，如互联网网关。网关通常用于连接本地网络与互联网，使得局域网中的计算机能够访问互联网上的资源。除了连接不同网络的功能，网关还可以实现安全性、负载均衡、数据过滤等功能。
 ```
-1. 第一个是知识库的回答(The answer to the knowledge base):
-2. 第二个 是结合知识库 chatgpt 的回答(Results of chatgpt answers  with reference answers)
+1. 第一个是知识库的回答(the answer to the knowledge base):
+2. 第二个 是结合知识库 chatgpt 的回答(results of chatgpt answers  with reference answers)
 3. 第三个 仅chatgpt 回答
 
 可以看出 直接问chatgpt,得到的答案可能跟k8s无关,结合k8s本地知识库,可以让回答偏向 数据集设定的主题
@@ -103,37 +103,37 @@ rearch term violation or exceeding category
 ```
 
    
-## kabi golang 实现 AI知识库导入原理
+## kabi golang 实现 ai知识库导入原理
 #### 导入
-1. 接入 qdrant 和 openAi cleint
-2. 解释原始知识库数据 为 Q(问) A(答)
+1. 接入 qdrant 和 openai cleint
+2. 解释原始知识库数据 为 q(问) a(答)
 3. 将 问题 经过 openai embedding 得到向量+答案存入 qdrant
    
 以下是 [kbai]("https://github.com/webws/embedding-knowledge-base") go 导入逻辑代码
 ```golang
-            qdrantClient := qdrant.NewQdrantClient(configFlags.Qdrant, configFlags.Collection, configFlags.VectorSize)
-			defer qdrantClient.Close()
-			aiClient, err := ai.NewAiClient(configFlags.Proxy, configFlags.ApiKey)
+            qdrantclient := qdrant.newqdrantclient(configflags.qdrant, configflags.collection, configflags.vectorsize)
+			defer qdrantclient.close()
+			aiclient, err := ai.newaiclient(configflags.proxy, configflags.apikey)
 			if err != nil {
 				return err
 			}
-			if err = qdrantClient.CreateCollection(configFlags.Collection, configFlags.VectorSize); err != nil {
+			if err = qdrantclient.createcollection(configflags.collection, configflags.vectorsize); err != nil {
 				return err
 			}
-			qas, err := convertToQAs(dataFile)
+			qas, err := converttoqas(datafile)
 			if err != nil {
 				return err
 			}
-			points := []*pb.PointStruct{}
-			logger.Infow("import", "data", qas)
-			qpsLenth := len(qas)
+			points := []*pb.pointstruct{}
+			logger.infow("import", "data", qas)
+			qpslenth := len(qas)
 			for i, qa := range qas {
-				embedding, err := aiClient.SimpleGetVec(qa.Questions)
+				embedding, err := aiclient.simplegetvec(qa.questions)
 				if err != nil {
-					logger.Errorw("SimpleGetVec", "err", err, "question", qa.Questions, "index", i, "total", qpsLenth)
+					logger.errorw("simplegetvec", "err", err, "question", qa.questions, "index", i, "total", qpslenth)
 					return err
 				}
-				point := buildPoint(qa.Questions, qa.Answers, embedding)
+				point := buildpoint(qa.questions, qa.answers, embedding)
 				points = append(points, point)
 			}
 ```
@@ -144,33 +144,33 @@ rearch term violation or exceeding category
 3. 根据 qdrant 里的知识库答案(参考答案) +  从 chatgpt 提问 得到扩展知识
 
 以下是 [kbai]("https://github.com/webws/embedding-knowledge-base") go 搜索代码逻辑
-```
-            qdrantClient := qdrant.NewQdrantClient(configFlags.Qdrant, configFlags.Collection, configFlags.VectorSize)
-			defer qdrantClient.Close()
+```golang
+            qdrantclient := qdrant.newqdrantclient(configflags.qdrant, configflags.collection, configflags.vectorsize)
+			defer qdrantclient.close()
 
-			aiClient, err := ai.NewAiClient(configFlags.Proxy, configFlags.ApiKey)
+			aiclient, err := ai.newaiclient(configflags.proxy, configflags.apikey)
 			if err != nil {
 				return err
 			}
-			vector, err := aiClient.SimpleGetVec(msg)
+			vector, err := aiclient.simplegetvec(msg)
 			if err != nil {
 				return err
 			}
-			points, err := qdrantClient.Search(vector)
+			points, err := qdrantclient.search(vector)
 			if err != nil {
-				logger.Errorw("qdrant search fail", "err", err)
+				logger.errorw("qdrant search fail", "err", err)
 				return err
 			}
 			if len(points) == 0 {
-				fmt.Println("rearch term violation or exceeding category")
+				fmt.println("rearch term violation or exceeding category")
 				return nil
-				// return errors.New("rearch term violation or exceeding category")
+				// return errors.new("rearch term violation or exceeding category")
 			}
-			// Score less than 0.8, rearch term violation or exceeding category
-			if points[0].Score < 0.8 {
-				fmt.Println("rearch term violation or exceeding category")
+			// score less than 0.8, rearch term violation or exceeding category
+			if points[0].score < 0.8 {
+				fmt.println("rearch term violation or exceeding category")
 				return nil
-				// return errors.New("rearch term violation or exceeding category")
+				// return errors.new("rearch term violation or exceeding category")
 			}
 
 ```
