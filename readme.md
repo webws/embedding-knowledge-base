@@ -1,11 +1,11 @@
 #  golang 结合 cobra 使用 chatgpt  qdrant 实现 ai知识库 cli 
 ## 流程
-![](https://qiniu.taoluyuan.com/2023/blog20230527115805.png?imagemogr2/auto-orient/thumbnail/!70p/blur/9x0/quality/75)
+![](https://img-blog.csdnimg.cn/img_convert/ef425236d64bca26fb73bf1d01614b50.png)
 1. 将数据集 通过 openai embedding 得到向量+组装payload,存入 qdrant
 2. 用户进行问题搜索,通过 openai embedding 得到向量,从 qdrant 中搜索相似度大于0.8的数据
 3. 从 qdrant 中取出数据得到参考答案
 4. 将问题标题+参考答案,组装成promot 向gpt进行提问,得到偏向于 已有知识库设定的扩展知识回答
-## kbai 知识库的导入和搜索 
+## kabi 知识库的导入和搜索 
 仓库地址:[https://github.com/webws/embedding-knowledge-base]("https://github.com/webws/embedding-knowledge-base")
 
 kabi 是使用 golang 基于 openai chatgpt embedding + qdrant 实现知识库的导入和问答
@@ -33,14 +33,14 @@ flags:
 
 use "kbai [command] --help" for more information about a command.
 ```
-#####  启动向量数据库
+### 启动向量数据库
 qdrant 是一个开源的向量搜索引擎,支持多种向量距离计算方式 
 
 docker 运行 qdrant
 ```
 docker run --rm -p 6334:6334 qdrant/qdrant
 ```
-##### kbai库导入数据到知识库
+### kbai库导入数据到知识库
 clone 源码运行(后续提供二进制文件)
 ```
 git clone https://github.com/webws/embedding-knowledge-base.git
@@ -73,7 +73,7 @@ data.json 数据格式如下,为 真实数据需自己准备
 ```text
 默认的 代理 是 "socks5://127.0.0.1:1080" 自定义 可使用 --proxy 指定
 ```
-##### kbai 搜索数据
+### kbai 搜索数据
 搜索问题(源码执行)
 ```
  go run ./ search --msg "网关是什么"
@@ -99,78 +99,13 @@ only chatgpt answers:
 
 ```
 go run ./ search --msg "苹果不洗能吃吗"
+```
+回答
+```
 rearch term violation or exceeding category
 ```
+### 参考地址
+[https://github.com/spf13/cobra](https://github.com/spf13/cobra)
+[https://github.com/kubernetes/kubernetes](https://github.com/kubernetes/kubernetes)
+[https://github.com/gohugoio/hugo](https://github.com/gohugoio/hugo)
 
-   
-## kabi golang 实现 ai知识库导入原理
-#### 导入
-1. 接入 qdrant 和 openai cleint
-2. 解释原始知识库数据 为 q(问) a(答)
-3. 将 问题 经过 openai embedding 得到向量+答案存入 qdrant
-   
-以下是 [kbai]("https://github.com/webws/embedding-knowledge-base") go 导入逻辑代码
-```golang
-            qdrantclient := qdrant.newqdrantclient(configflags.qdrant, configflags.collection, configflags.vectorsize)
-			defer qdrantclient.close()
-			aiclient, err := ai.newaiclient(configflags.proxy, configflags.apikey)
-			if err != nil {
-				return err
-			}
-			if err = qdrantclient.createcollection(configflags.collection, configflags.vectorsize); err != nil {
-				return err
-			}
-			qas, err := converttoqas(datafile)
-			if err != nil {
-				return err
-			}
-			points := []*pb.pointstruct{}
-			logger.infow("import", "data", qas)
-			qpslenth := len(qas)
-			for i, qa := range qas {
-				embedding, err := aiclient.simplegetvec(qa.questions)
-				if err != nil {
-					logger.errorw("simplegetvec", "err", err, "question", qa.questions, "index", i, "total", qpslenth)
-					return err
-				}
-				point := buildpoint(qa.questions, qa.answers, embedding)
-				points = append(points, point)
-			}
-```
-### 搜索
-
-1. 问题搜索,通过 openai embedding 得到向量
-2. 根据向量 从 qdrant 中搜索相似度大于0.8的数据
-3. 根据 qdrant 里的知识库答案(参考答案) +  从 chatgpt 提问 得到扩展知识
-
-以下是 [kbai]("https://github.com/webws/embedding-knowledge-base") go 搜索代码逻辑
-```golang
-            qdrantclient := qdrant.newqdrantclient(configflags.qdrant, configflags.collection, configflags.vectorsize)
-			defer qdrantclient.close()
-
-			aiclient, err := ai.newaiclient(configflags.proxy, configflags.apikey)
-			if err != nil {
-				return err
-			}
-			vector, err := aiclient.simplegetvec(msg)
-			if err != nil {
-				return err
-			}
-			points, err := qdrantclient.search(vector)
-			if err != nil {
-				logger.errorw("qdrant search fail", "err", err)
-				return err
-			}
-			if len(points) == 0 {
-				fmt.println("rearch term violation or exceeding category")
-				return nil
-				// return errors.new("rearch term violation or exceeding category")
-			}
-			// score less than 0.8, rearch term violation or exceeding category
-			if points[0].score < 0.8 {
-				fmt.println("rearch term violation or exceeding category")
-				return nil
-				// return errors.new("rearch term violation or exceeding category")
-			}
-
-```
