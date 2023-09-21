@@ -1,185 +1,176 @@
-#  使用golang 基于 OpenAI Embedding + qdrant 实现k8s本地知识库
+#  golang 结合 cobra 使用 chatgpt  qdrant 实现 AI知识库 cli 
 ## 流程
 ![](https://qiniu.taoluyuan.com/2023/blog20230527115805.png?imageMogr2/auto-orient/thumbnail/!70p/blur/9x0/quality/75)
 1. 将数据集 通过 openai embedding 得到向量+组装payload,存入 qdrant
 2. 用户进行问题搜索,通过 openai embedding 得到向量,从 qdrant 中搜索相似度大于0.8的数据
-3. 从 qdrant 中取出第一条数据
-4. 将问题标题,问题描述,问题回答,组装成promot向gpt进行提问,得到回答
+3. 从 qdrant 中取出数据得到参考答案
+4. 将问题标题+参考答案,组装成promot 向gpt进行提问,得到偏向于 已有知识库设定的扩展知识回答
+## kabi 知识库的导入和搜索 
+仓库地址:[https://github.com/webws/embedding-knowledge-base]("https://github.com/webws/embedding-knowledge-base")
 
+kabi 是使用 golang 基于 OpenAI chatgpt Embedding + qdrant 实现知识库的导入和问答
+```
+❯ kabi -h
+a local knowledge base, based on chatgpt and qdrant
 
-## 向量数据库
-qdrant 是一个开源的向量搜索引擎,支持多种向量距离计算方式
-官方文档:https://qdrant.tech/documentation/quick_start/
-本节 介绍 qdrant 都是基于官方文档的例子,如已熟悉可以直接阅读下一节 [数据集导入qdrant]
-### 安装 qdrant
-docker 安装
+Usage:
+  kbai [flags]
+  kbai [command]
+
+Available Commands:
+  completion  Generate the autocompletion script for the specified shell
+  help        Help about any command
+  import      import data to vector database
+  search      ask the knowledge base example: kbai ask --msg 'First, the chicken or the egg'
+
+Flags:
+      --apiKey string       openai apikey:default from env apiKey
+      --collection string   qdrant collection name default: kubernetes (default "kubernetes")
+  -h, --help                help for kbai
+      --proxy string        http client proxy default:socks5://127.0.0.1:1080  (default "socks5://127.0.0.1:1080")
+      --qdrant string       qdrant address default: 127.0.0.1:6334 (default "127.0.0.1:6334")
+      --vectorSize uint     qdrant vector size default: 1536 (default 1536)
+
+Use "kbai [command] --help" for more information about a command.
 ```
-docker pull qdrant/qdrant && \
-docker run -p 6333:6333 -p 6334:6334 qdrant/qdrant
+#####  启动向量数据库
+qdrant 是一个开源的向量搜索引擎,支持多种向量距离计算方式 
+
+docker 运行 qdrant
 ```
-### collection 说明
-collection 是 qdrant 中的一个概念,类似于 mysql 中的 database,用于区分不同的数据集合 
-官方文档:https://qdrant.tech/documentation/collections/#collections 
-collection 下面是 collection 字段说明,以创建 collection 为例 
-```bash
-PUT /collections/{collection_name}
-{
-    "name": "example_collection",
-    "vectors": {
-      "size": 300,
-      "distance": "Cosine"
-    }
-}
+docker run --rm -p 6334:6334 qdrant/qdrant
 ```
-name: collection 名称 
-vectors: 向量的配置  
-size: 向量的维度 
-distance: 向量的距离计算方式,Cosine(余弦距离), Euclidean(欧式距离),Dot product(点积)  
-如果需要将 openai embedding 后 存入 qdrant，需要将 size 设置为 1536[openai embedding](https://openai.com/blog/new-and-improved-embedding-model) 
- 
-### 插入数据
-这个是官网 http add point 的例子,可以看到 payload 是可以存储任意的 json 数据,这个数据可以用于后续的过滤
-```bash
-curl -L -X PUT 'http://localhost:6333/collections/test_collection/points?wait=true' \
-    -H 'Content-Type: application/json' \
-    --data-raw '{
-        "points": [
-          {"id": 1, "vector": [0.05, 0.61, 0.76, 0.74], "payload": {"city": "Berlin" }},
-          {"id": 2, "vector": [0.19, 0.81, 0.75, 0.11], "payload": {"city": ["Berlin", "London"] }},
-          {"id": 3, "vector": [0.36, 0.55, 0.47, 0.94], "payload": {"city": ["Berlin", "Moscow"] }},
-          {"id": 4, "vector": [0.18, 0.01, 0.85, 0.80], "payload": {"city": ["London", "Moscow"] }},
-          {"id": 5, "vector": [0.24, 0.18, 0.22, 0.44], "payload": {"count": [0] }},
-          {"id": 6, "vector": [0.35, 0.08, 0.11, 0.44]}
-        ]
-    }'
+##### kbai库导入数据到知识库
+clone 源码运行(后续提供二进制文件)
 ```
-* id:唯一
-* vector:向量,可在HuggingFace 找相应的模型训练,获取,也可以 openai embedding 得到
-* payload:任意的自定义 json 数据
-### 搜索数据
-这是 qdrant 官方搜索数据的例子,可以看到返回的数据中包含了 payload 中的数据
-``` bash
-curl -L -X POST 'http://localhost:6333/collections/test_collection/points/search' \
-    -H 'Content-Type: application/json' \
-    --data-raw '{
-        "vector": [0.2,0.1,0.9,0.7],
-        "limit": 3
-    }'
+git clone https://github.com/webws/embedding-knowledge-base.git
+
+cd ./embedding-knowledge-base
 ```
-vector:向量,通过 openai embedding 得到
-limit:返回的数据条数
-## 数据集导入k8s知识数据库
+
+这里使用的测试数据是k8s相关的知识库,真实数据需自己准备
+
+1.设置 openai apikey
+```
+export apiKey=xxx
+```
+
+2.导入知识库(源码运行)
+```
+go run ./ import --dataFile ./example/data.json
+```
+data.json 数据格式如下,为 真实数据需自己准备
+
+```
+[
+    {
+        "questions": "这是问题",
+        "answers": "这是答案"
+    },
+]
+```
+说明:
+```text
+默认的 代理 是 "socks5://127.0.0.1:1080" 自定义 可使用 --proxy 指定
+```
+##### kbai 搜索数据
+搜索问题(源码执行)
+```
+ go run ./ search --msg "网关是什么"
+```
+回答
+```text
+The answer to the knowledge base:
+在Kubernetes中，网关通常指的是Ingress（入 口）资源对象。Ingress是一种Kubernetes API对象，用于配置和管理集群中的HTTP和HTTPS流量入口。它充当了从集群外部访问集群内部服务的入口点
+
+Results of chatgpt answers  with reference answers:
+，同时提供负载均衡、SSL/TLS终止和基于域名的路由等功能。Ingress资源对象定义了一组规则，这些规则指定了通过特定HTTP路径或主机名将请求路由到后端服务的方式。可以使用不同的Ingress控制器实现这些规则，如Nginx、Traefik等。这样就可以在集群中创建多个Ingress资源对象来管理不同的流量入口。
+
+only chatgpt answers:
+网关是一种网络设备，用于连接两个或多个不同类型的网络，以便实现数据以不同协议进行传递和转换。网关起到了连接不同网络之间的桥梁作用，将两个或多个网络互相连接起来，并负责数据的路由和转发。网关可以是硬件设备，如路由器，也可以是软件程序，如互联网网关。网关通常用于连接本地网络与互联网，使得局域网中的计算机能够访问互联网上的资源。除了连接不同网络的功能，网关还可以实现安全性、负载均衡、数据过滤等功能。
+```
+1. 第一个是知识库的回答(The answer to the knowledge base):
+2. 第二个 是结合知识库 chatgpt 的回答(Results of chatgpt answers  with reference answers)
+3. 第三个 仅chatgpt 回答
+
+可以看出 直接问chatgpt,得到的答案可能跟k8s无关,结合k8s本地知识库,可以让回答偏向 数据集设定的主题
+
+如果直接搜索 与知识库无关或违规问题,将搜索不到任务数据
+
+```
+go run ./ search --msg "苹果不洗能吃吗"
+rearch term violation or exceeding category
+```
+
+   
+## kabi golang 实现 AI知识库导入原理
+#### 导入
+1. 接入 qdrant 和 openAi cleint
+2. 解释原始知识库数据 为 Q(问) A(答)
+3. 将 问题 经过 openai embedding 得到向量+答案存入 qdrant
+   
+以下是 [kbai]("https://github.com/webws/embedding-knowledge-base") go 导入逻辑代码
 ```golang
-// 模拟数据集 question:answer
-var questions = []string{
-	"什么是Kubernetes中的Deployment？",
-	"Kubernetes中的Service有什么作用？",
-}
-
-var answers = []string{
-	"Deployment是Kubernetes中用于管理应用程序副本的资源对象。它提供了副本的声明性定义，可以实现应用程序的部署、扩展和更新。",
-	"Service用于定义一组Pod的访问方式和网络策略。它为Pod提供了一个稳定的网络地址，并可以实现负载均衡、服务发现和内部通信。",
-}
-
-func main() {
-// 第一步：自己创建 一个collection:  kubernetes
-	var err error
-	err = qdrant.Collection("kubernetes").Create(1536)
-	if err != nil {
-		log.Fatalln("创建collection出错:", err.Error())
-	}
-
-	points := []*pb.PointStruct{}
-	// 批量 进行BuildQdrantPoint
-	for index, question := range questions {
-		if index < 9 {
-			continue
-		}
-		p, err := BuildQdrantPoint(question, answers[index])
-		if err != nil {
-			log.Fatalln("创建point出错:", err.Error())
-		}
-		fmt.Println(p.Id)
-		points = append(points, p)
-
-	}
-	err = qdrant.FastQdrantClient.CreatePoints("kubernetes", points)
-	if err != nil {
-		log.Fatalln("批量创建point出错:", err.Error())
-	}
-}
-```
-* 上面代码 通过模拟数据集,将数据集导入到 k8s 知识数据库中,具体的实现可以参考 prebuild/prebuild.go 的代码
-* BuildQdrantPoint 函数是将问题和答案转换成 qdrant 的 point 
-* 其中 vector 是通过 openai embedding 得到的,这里使用的是 [openai embedding](https://openai.com/blog/new-and-improved-embedding-model) 
-
-## 搜索数据 
-### 代码实现
-```golang
-import (
-	"fmt"
-
-	myai "embedding-knowledge-base/ai"
-	"embedding-knowledge-base/qdrant"
-)
-
-func main() {
-	prompt := "什么是Kubernetes中的DaemonSet？"
-	// prompt := "苹果不削皮能吃吗"
-	p_vec, err := myai.SimpleGetVec(prompt)
-	if err != nil {
-		panic(err)
-	}
-	points, err := qdrant.FastQdrantClient.Search("kubernetes", p_vec)
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Printf("用户的问题是:%s\n", prompt)
-	if points[0].Score < 0.8 {
-		fmt.Println("违规问题或者超纲问题")
-		return
-	}
-	answer := points[0].Payload["answers"].GetStringValue()
-	fmt.Printf("知识库答案是:%s\n", answer)
-	tmpl := "question: %s\n" + "reference answer: %s\n"
-	finalPrompt := fmt.Sprintf(tmpl, prompt, points[0].Payload["question"].GetStringValue(), answer)
-	fmt.Println("------------------------")
-	fmt.Printf("结合知识库参考答案:chatgpt的回答是:%s\n", myai.K8sChat(finalPrompt))
-	// 不结合知识库参考答案
-	fmt.Printf("不依赖本地知识库, chatgpt的直接回答是:%s\n", myai.K8sChat(prompt))
-}
-```
-* 上面代码是通过 prompt 搜索qdrant 知识库,如果相似度小于 0.8,有可能是用户乱提问,或问知识库无关的问题,直接返回
-* 如果相似度大于 0.8,则取第一条数据,将问题标题,问题描述,问题回答,组装成promot向gpt进行提问,得到回答
-* 具体的实现可以参考 main.go 的代码
-### 示例
-1. 问无关的问题,比如:苹果不削皮能吃吗 
-![](http://qiniu.taoluyuan.com/2023/blog20230526002303.png?imageMogr2/auto-orient/interlace/1/blur/1x0/quality/70%7Cwatermark/2/text/YmxvZy50YW9sdXl1YW4uY29t/font/5a6L5L2T/fontsize/500/fill/I0E4QTBBMA==/dissolve/100/gravity/NorthWest/dx/10/dy/10)
-可以看到 相似度太低,提示违规问题或者超纲问题
-2. 问k8s 本地知识库的问题,比如:什么是Kubernetes中的Deployment？
-   ![](http://qiniu.taoluyuan.com/2023/blog20230526002640.png?imageMogr2/auto-orient/interlace/1/blur/1x0/quality/70%7Cwatermark/2/text/YmxvZy50YW9sdXl1YW4uY29t/font/5a6L5L2T/fontsize/500/fill/I0E4QTBBMA==/dissolve/100/gravity/NorthWest/dx/10/dy/1)
-3. 问k8s本地知识库的问题,但问题单独向chatgpt提问,并不能得到k8s相关问题.体现qdrant 本地知识库 辅助的重要性,比如问 网关是什么  
-![](http://qiniu.taoluyuan.com/2023/blog20230526003436.png?imageMogr2/auto-orient/interlace/1/blur/1x0/quality/70%7Cwatermark/2/text/YmxvZy50YW9sdXl1YW4uY29t/font/5a6L5L2T/fontsize/500/fill/I0E4QTBBMA==/dissolve/100/gravity/NorthWest/dx/10/dy/10) 
- 可以看到,红线部分,直接问chatgpt,得到的答案可能跟k8s无关,结合k8s本地知识库,可以让回答偏向 数据集设定的主题,比如k8s
-## 示例源码地址及使用
-源码地址:
-进入根目录,将目录 ai/common.go 的 以下 const改成自己的
-```golang
-    SocksProxy = "socks5://127.0.0.1:1080"
-	AIKey      = "your api key"
-```
-### docker 安装 qdrant
-```shell
-make install-qdrant
-```
-### 数据集导入qdrant
-* 导入 adrant,我这边就是模拟 了十几条k8s相关的问题,在 prebuild/prebuild.go 
-* 更多的数据集,需要自己用脚本抓取,然后导入qdrant
-```shell
-make import-qdrant
+            qdrantClient := qdrant.NewQdrantClient(configFlags.Qdrant, configFlags.Collection, configFlags.VectorSize)
+			defer qdrantClient.Close()
+			aiClient, err := ai.NewAiClient(configFlags.Proxy, configFlags.ApiKey)
+			if err != nil {
+				return err
+			}
+			if err = qdrantClient.CreateCollection(configFlags.Collection, configFlags.VectorSize); err != nil {
+				return err
+			}
+			qas, err := convertToQAs(dataFile)
+			if err != nil {
+				return err
+			}
+			points := []*pb.PointStruct{}
+			logger.Infow("import", "data", qas)
+			qpsLenth := len(qas)
+			for i, qa := range qas {
+				embedding, err := aiClient.SimpleGetVec(qa.Questions)
+				if err != nil {
+					logger.Errorw("SimpleGetVec", "err", err, "question", qa.Questions, "index", i, "total", qpsLenth)
+					return err
+				}
+				point := buildPoint(qa.Questions, qa.Answers, embedding)
+				points = append(points, point)
+			}
 ```
 ### 搜索
-```shell
-make search
+
+1. 问题搜索,通过 openai embedding 得到向量
+2. 根据向量 从 qdrant 中搜索相似度大于0.8的数据
+3. 根据 qdrant 里的知识库答案(参考答案) +  从 chatgpt 提问 得到扩展知识
+
+以下是 [kbai]("https://github.com/webws/embedding-knowledge-base") go 搜索代码逻辑
+```
+            qdrantClient := qdrant.NewQdrantClient(configFlags.Qdrant, configFlags.Collection, configFlags.VectorSize)
+			defer qdrantClient.Close()
+
+			aiClient, err := ai.NewAiClient(configFlags.Proxy, configFlags.ApiKey)
+			if err != nil {
+				return err
+			}
+			vector, err := aiClient.SimpleGetVec(msg)
+			if err != nil {
+				return err
+			}
+			points, err := qdrantClient.Search(vector)
+			if err != nil {
+				logger.Errorw("qdrant search fail", "err", err)
+				return err
+			}
+			if len(points) == 0 {
+				fmt.Println("rearch term violation or exceeding category")
+				return nil
+				// return errors.New("rearch term violation or exceeding category")
+			}
+			// Score less than 0.8, rearch term violation or exceeding category
+			if points[0].Score < 0.8 {
+				fmt.Println("rearch term violation or exceeding category")
+				return nil
+				// return errors.New("rearch term violation or exceeding category")
+			}
+
 ```

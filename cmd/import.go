@@ -54,7 +54,7 @@ func NewImportCmd(configFlags options.ConfigFlags) *cobra.Command {
 				point := buildPoint(qa.Questions, qa.Answers, embedding)
 				points = append(points, point)
 			}
-			return qdrantClient.CreatePoints("kubernetes", points)
+			return qdrantClient.CreatePoints(points)
 		},
 	}
 	importCmd.Flags().StringVarP(&dataFile, FlagdataFile, "p", "", "import dataFile")
