@@ -24,7 +24,7 @@ func (cm *ChatMessages) Clear() {
 func InitChatMessages() ChatMessages {
 	cm := make(ChatMessages, 0)
 	// cm.AddForSystem("You are a helpful K8S assistant. Use the provided text to form your answer. Keep your answer within 10 sentences. Accurate, helpful, concise and to the point")
-	cm.AddForSystem("You are a helpful K8S assistant. I will provide you with text, including the question title or keywords, question description, and reference answer. If I provide a reference answer, please try to use it as much as possible.Try to answer in Chinese as much as possible, Keep your answer within 10 sentences. Accurate, useful, concise and to the point")
+	// cm.AddForSystem("You are a helpful K8S assistant. I will provide you with text, including the question title or keywords, question description, and reference answer. If I provide a reference answer, please try to use it as much as possible.Try to answer in Chinese as much as possible, Keep your answer within 10 sentences. Accurate, useful, concise and to the point")
 	return cm
 }
 

@@ -78,19 +78,19 @@ func (qc *QdrantClient) CreateCollection(name string, size uint64) error {
 	return nil
 }
 
-func (qc *QdrantClient) CreatePoints(collection string, points []*pb.PointStruct) error {
+func (qc *QdrantClient) CreatePoints(points []*pb.PointStruct) error {
 	pc := pb.NewPointsClient(qc.grpcConn)
 
 	wait := true
 	pointsReq := pb.UpsertPoints{
-		CollectionName: collection,
+		CollectionName: qc.collection,
 		Points:         points,
 		Wait:           &wait,
 	}
 
 	_, err := pc.Upsert(context.TODO(), &pointsReq)
 	if err != nil {
-		logger.Errorw("CreatePoints fail","err",err)
+		logger.Errorw("CreatePoints fail", "err", err)
 		return err
 	}
 	return nil

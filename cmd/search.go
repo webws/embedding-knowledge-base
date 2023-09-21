@@ -59,7 +59,7 @@ func NewSearchCmd(configFlags options.ConfigFlags) *cobra.Command {
 				return err
 			}
 			fmt.Printf("Results of chatgpt answers  with reference answers:\n%s\n", chatgptAnswer)
-			chatgptAnswer, err = aiClient.Chat(finalPrompt)
+			chatgptAnswer, err = aiClient.Chat(msg)
 			if err != nil {
 				return err
 			}
