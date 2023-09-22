@@ -5,7 +5,7 @@
 2. 用户进行问题搜索,通过 openai embedding 得到向量,从 qdrant 中搜索相似度大于0.8的数据
 3. 从 qdrant 中取出数据得到参考答案
 4. 将问题标题+参考答案,组装成promot 向gpt进行提问,得到偏向于 已有知识库设定的扩展知识回答
-## kabi 知识库的导入和搜索 
+## kbai 知识库的导入和搜索 
 仓库地址:[https://github.com/webws/embedding-knowledge-base]("https://github.com/webws/embedding-knowledge-base")
 
 kabi 是使用 golang 基于 openai chatgpt embedding + qdrant 实现知识库的导入和问答
@@ -108,4 +108,5 @@ rearch term violation or exceeding category
 [https://github.com/spf13/cobra](https://github.com/spf13/cobra)
 [https://github.com/kubernetes/kubernetes](https://github.com/kubernetes/kubernetes)
 [https://github.com/gohugoio/hugo](https://github.com/gohugoio/hugo)
+[https://github.com/qdrant/qdrant](https://github.com/qdrant/qdrant)
 
