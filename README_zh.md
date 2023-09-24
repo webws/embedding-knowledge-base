@@ -1,5 +1,5 @@
-Translations: [English](README.md) | [简体中文](README_zh.md)
-### kbai  
+Translations: [English](readme.md) | [简体中文](README_zh.md)
+## kbai  
 使用 golang 基于 openai chatgpt embedding + qdrant 实现知识库的导入和问答
 ```
 ❯ kbai -h
@@ -25,9 +25,9 @@ flags:
 
 use "kbai [command] --help" for more information about a command.
 ```
-## 流程
+### 流程
 ![](https://img-blog.csdnimg.cn/img_convert/ef425236d64bca26fb73bf1d01614b50.png)
-### 安装
+## 安装
 go build 安装 
 ```
 sudo go build -o kbai  github.com/webws/embedding-knowledge-base && sudo  mv ./kbai /usr/local/bin
@@ -37,7 +37,7 @@ sudo go build -o kbai  github.com/webws/embedding-knowledge-base && sudo  mv ./k
 git clone https://github.com/webws/embedding-knowledge-base.git && cd ./embedding-knowledge-base
 
 ```
-### 使用示例
+## 使用示例
 必须先启动qdrant qdrant 是一个开源的向量搜索引擎,支持多种向量距离计算方式 
 
 docker 运行 qdrant
@@ -49,7 +49,7 @@ docker run --rm -p 6334:6334 qdrant/qdrant
 ```
 export apikey=xxx
 ```
-#### 导入
+### 导入
 
 这里使用的测试数据是k8s相关的知识库,真实数据需自己准备
 
@@ -71,7 +71,7 @@ data.json 数据格式如下,为 真实数据需自己准备
 ```text
 默认的 代理 是 "socks5://127.0.0.1:1080" 自定义 可使用 --proxy 指定
 ```
-#### kbai 搜索数据
+### kbai 搜索数据
 搜索问题(源码执行)
 ```
 kbai search --msg "网关是什么"
@@ -102,9 +102,10 @@ go run ./ search --msg "苹果不洗能吃吗"
 ```
 rearch term violation or exceeding category
 ```
-### 参考地址
-[https://github.com/spf13/cobra](https://github.com/spf13/cobra)
-[https://github.com/kubernetes/kubernetes](https://github.com/kubernetes/kubernetes)
-[https://github.com/gohugoio/hugo](https://github.com/gohugoio/hugo)
-[https://github.com/qdrant/qdrant](https://github.com/qdrant/qdrant)
+## 参考地址
+* [https://github.com/spf13/cobra](https://github.com/spf13/cobra) 
+* [https://github.com/kubernetes/kubernetes](https://github.com/kubernetes/kubernetes) 
+* [https://github.com/gohugoio/hugo](https://github.com/gohugoio/hugo) 
+* [https://github.com/qdrant/qdrant](https://github.com/qdrant/qdrant) 
+
 

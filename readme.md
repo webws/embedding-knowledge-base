@@ -1,7 +1,7 @@
-Translations: [English](README.md) | [简体中文](README_zh.md)
-### kbai
+Translations: [English](readme.md) | [简体中文](README_zh.md)
+## kbai
 a local knowledge base, based on chatgpt and qdrant
-#### usage
+### usage
 local knowledge base based on chatgpt and qdrant, supporting data import and Q&A
 ```
 ❯ kbai -h
@@ -27,7 +27,7 @@ flags:
 
 use "kbai [command] --help" for more information about a command.
 ```
-### install
+## install
 go build install rename and move to the $PATH
 ```
 sudo go build -o kbai  github.com/webws/embedding-knowledge-base && sudo  mv ./kbai /usr/local/bin
@@ -38,7 +38,7 @@ git clone https://github.com/webws/embedding-knowledge-base.git && cd ./embeddin
 
 ```
 or download binary file from release……(todo)
-### use example
+## use example
 first, you must start the vector database qdrant
 ```
 docker run --rm -p 6334:6334 qdrant/qdrant
@@ -48,7 +48,7 @@ set openai apikey
 ```
 export apikey=xxx
 ```
-#### import
+### import
 import the prepared JSON data into qdrant
 ```
 kbai import --datafile ./example/data.json
@@ -64,7 +64,7 @@ example format of file data.json
 ```
 note:the imported sample data content is: k8s related knowledge, and it is in Chinese
 
-#### search
+### search
 
 ask knowledge related to the knowledge base
 ```
@@ -90,7 +90,7 @@ kbai search --msg "Can apples be eaten without washing?"
 rearch term violation or exceeding category
 ```
 ### reference project
-[https://github.com/spf13/cobra](https://github.com/spf13/cobra)
-[https://github.com/kubernetes/kubernetes](https://github.com/kubernetes/kubernetes)
-[https://github.com/gohugoio/hugo](https://github.com/gohugoio/hugo)
-[https://github.com/qdrant/qdrant](https://github.com/qdrant/qdrant)
+* [https://github.com/spf13/cobra](https://github.com/spf13/cobra) 
+* [https://github.com/kubernetes/kubernetes](https://github.com/kubernetes/kubernetes) 
+* [https://github.com/gohugoio/hugo](https://github.com/gohugoio/hugo) 
+* [https://github.com/qdrant/qdrant](https://github.com/qdrant/qdrant) 
