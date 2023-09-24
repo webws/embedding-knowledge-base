@@ -23,7 +23,7 @@ func NewSearchCmd(configFlags options.ConfigFlags) *cobra.Command {
 			qdrantClient := qdrant.NewQdrantClient(configFlags.Qdrant, configFlags.Collection, configFlags.VectorSize)
 			defer qdrantClient.Close()
 
-			aiClient, err := ai.NewAiClient(configFlags.Proxy, configFlags.ApiKey)
+			aiClient, err := ai.NewAiClient(configFlags.Proxy, configFlags.ApiKey, configFlags.Proxy == options.DefaultSocksProxy)
 			if err != nil {
 				return err
 			}

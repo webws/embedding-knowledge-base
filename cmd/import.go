@@ -31,7 +31,7 @@ func NewImportCmd(configFlags options.ConfigFlags) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			qdrantClient := qdrant.NewQdrantClient(configFlags.Qdrant, configFlags.Collection, configFlags.VectorSize)
 			defer qdrantClient.Close()
-			aiClient, err := ai.NewAiClient(configFlags.Proxy, configFlags.ApiKey)
+			aiClient, err := ai.NewAiClient(configFlags.Proxy, configFlags.ApiKey, configFlags.Proxy == options.DefaultSocksProxy)
 			if err != nil {
 				return err
 			}
