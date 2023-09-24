@@ -1,4 +1,3 @@
-#  golang 结合 cobra 使用 chatgpt  qdrant 实现 ai知识库 cli 
 ## 流程
 ![](https://img-blog.csdnimg.cn/img_convert/ef425236d64bca26fb73bf1d01614b50.png)
 1. 将数据集 通过 openai embedding 得到向量+组装payload,存入 qdrant
@@ -8,9 +7,9 @@
 ## kbai 知识库的导入和搜索 
 仓库地址:[https://github.com/webws/embedding-knowledge-base]("https://github.com/webws/embedding-knowledge-base")
 
-kabi 是使用 golang 基于 openai chatgpt embedding + qdrant 实现知识库的导入和问答
+kbai 是使用 golang 基于 openai chatgpt embedding + qdrant 实现知识库的导入和问答
 ```
-❯ kabi -h
+❯ kbai -h
 a local knowledge base, based on chatgpt and qdrant
 
 usage:
