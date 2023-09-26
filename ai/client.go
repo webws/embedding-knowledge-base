@@ -2,6 +2,7 @@ package ai
 
 import (
 	"context"
+	"errors"
 	"log"
 	"net/http"
 	"net/url"
@@ -56,14 +57,10 @@ func (c *AIClient) SimpleGetVec(prompt string) ([]float32, error) {
 	if err != nil {
 		return nil, err
 	}
-	var v []float32
-	for _, d := range rsp.Data {
-		v = append(v, d.Embedding...)
+	if len(rsp.Data) > 0 {
+		return rsp.Data[0].Embedding, nil
 	}
-	for i := 0; i < len(v); i++ {
-		v[i] = v[i] / float32(len(rsp.Data))
-	}
-	return v, nil
+	return nil, errors.New("embedding length is 0")
 }
 
 func (c *AIClient) Chat(prompt string) (string, error) {
