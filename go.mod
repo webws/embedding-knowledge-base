@@ -15,9 +15,13 @@ require (
 )
 
 require (
+	github.com/alecthomas/colour v0.1.0 // indirect
+	github.com/alecthomas/repr v0.0.0-20210801044451-80ca428c5142 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
+	github.com/mattn/go-isatty v0.0.17 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/sergi/go-diff v1.2.0 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.8.0 // indirect
 	go.uber.org/zap v1.24.0 // indirect
@@ -25,6 +29,7 @@ require (
 )
 
 require (
+	github.com/alecthomas/assert v1.0.0
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/spf13/cobra v1.7.0
 	github.com/stretchr/testify v1.8.4
